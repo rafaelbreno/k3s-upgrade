@@ -22,7 +22,6 @@ RUN grep -E " k3s(-arm\w*|-s390x)?$" sha256sum-${TARGETARCH}.txt | sha256sum -c 
  && file /opt/k3s
 
 FROM ${ALPINE}
-ARG ARCH
 ARG TAG
 RUN apk upgrade -U \
  && apk add \

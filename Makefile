@@ -13,7 +13,7 @@ ifeq ($(ARCH), amd64)
     ARTIFACT := k3s
 else ifeq ($(ARCH), arm64)
     ARTIFACT := k3s-arm64
-else ifeq ($(ARCH), arm)
+else ifeq ($(ARCH), arm/v7)
     ARTIFACT := k3s-armhf
 else
     $(error Error: ARCH '$(ARCH)' not supported, only amd64, arm64 and arm.)
@@ -32,7 +32,6 @@ IMAGE = $(REPO)/k3s-upgrade:$(DOCKER_TAG)
 BUILD_OPTS = \
 	--platform=$(TARGET_PLATFORMS) \
 	--build-arg TAG=$(TAG) \
-	--build-arg ARCH=$(ARCH) \
 	--build-arg ARTIFACT=$(ARTIFACT) \
 	--tag "$(IMAGE)"
 
