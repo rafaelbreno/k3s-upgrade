@@ -71,8 +71,8 @@ jobs:
           make-target: publish-manifest
 
           public-repo: rafiusky
-          public-username: ${{ env.DOCKER_USERNAME }}
-          public-password: ${{ env.DOCKER_PASSWORD }}
+          public-username: ${{ secrets.DOCKER_USERNAME }}
+          public-password: ${{ secrets.DOCKER_PASSWORD }}
           push-to-prime: false
 
       - name: Inspect Docker image
