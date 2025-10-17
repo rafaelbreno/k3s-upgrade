@@ -65,6 +65,9 @@ jobs:
 
       - name: Publish Manifest - Docker
         uses: rancher/ecm-distro-tools/actions/publish-image@master
+        env:
+          VERSION: ${{ github.ref_name }}
+          ARCH: ${{ matrix.arch }}
         with:
           image: "k3s-upgrade"
           tag: ${{ github.ref_name }}
