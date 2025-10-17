@@ -15,8 +15,6 @@ else ifeq ($(ARCH), arm64)
     ARTIFACT := k3s-arm64
 else ifeq ($(ARCH), arm/v7)
     ARTIFACT := k3s-armhf
-else
-    $(error Error: ARCH '$(ARCH)' not supported, only amd64, arm64 and arm.)
 endif
 
 TAG ?= ${TAG}
