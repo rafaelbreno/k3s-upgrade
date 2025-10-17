@@ -18,13 +18,13 @@ jobs:
         fail-fast: true
         matrix:
           include:
-            - tag-suffix: "-amd64"
+            - tag-suffix: "amd64"
               arch: amd64
               os: linux
-            - tag-suffix: "-arm64"
+            - tag-suffix: "arm64"
               arch: arm64
               os: linux
-            - tag-suffix: "-armhf"
+            - tag-suffix: "armhf"
               arch: arm/v7 
               os: linux
     steps:
@@ -38,7 +38,7 @@ jobs:
       - name: Publish Image - Docker
         uses: rancher/ecm-distro-tools/actions/publish-image@master
         env:
-          TAG: ${{ github.ref_name }}
+          VERSION: ${{ github.ref_name }}
           OS: ${{ matrix.os }}
           ARCH: ${{ matrix.arch }}
         with:
