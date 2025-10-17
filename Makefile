@@ -52,4 +52,4 @@ publish-manifest:
 
 .PHONY: download-assets
 download-assets: 
-	ARCH=$(ARCH) ARTIFACT=$(ARTIFACT) TAG=$(TAG) ./scripts/download
+	ARCH=$(ARCH) ARTIFACT=$(ARTIFACT) VERSION=$(VERSION) ./scripts/download

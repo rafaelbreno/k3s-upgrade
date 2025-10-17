@@ -38,7 +38,7 @@ jobs:
       - name: Publish Image - Docker
         uses: rancher/ecm-distro-tools/actions/publish-image@master
         env:
-          TAG: ${{ github.ref_name }}
+          VERSION: ${{ github.ref_name }}
           OS: ${{ matrix.os }}
           ARCH: ${{ matrix.arch }}
         with:
