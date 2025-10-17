@@ -13,6 +13,7 @@ if [ "${ARCH}" == "amd64" ]; then
 elif [ "${ARCH}" == "arm64" ]; then
   export ARTIFACT="k3s-arm64";
 elif [ "${ARCH}" == "arm/v7" ]; then
+  export ARCH="arm"; # overwriting to match the sha256sum- suffix
   export ARTIFACT="k3s-armhf";
 else
   echo "Error: ARCH ${ARCH} not supported, only amd64, arm64 and arm."
