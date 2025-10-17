@@ -26,7 +26,7 @@ DOCKER_TAG := $(shell echo $(TAG) | sed 's/+/-/g')
 export DOCKER_BUILDKIT?=1
 
 ARCH ?= amd64
-REPO ?= rancher
+REPO ?= rafiusky
 IMAGE = $(REPO)/k3s-upgrade:$(DOCKER_TAG)
 
 BUILD_OPTS = \
