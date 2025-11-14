@@ -16,34 +16,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: "Read Vault secrets"
-        if: github.repository_owner == 'k3s-io'
-        uses: rancher-eio/read-vault-secrets@main
-        with:
-          secrets: |
-            secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials username | DOCKER_USERNAME ;
-            secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials password | DOCKER_PASSWORD ;
-            secret/data/github/repo/${{ github.repository }}/k3s-prime-registry/credentials primeribs |  PRIMERIBS ;
-            secret/data/github/repo/${{ github.repository }}/k3s-prime-registry/credentials registry |  PRIME_REGISTRY ;
-            secret/data/github/repo/${{ github.repository }}/k3s-prime-registry/credentials username |  PRIME_REGISTRY_USERNAME ;
-            secret/data/github/repo/${{ github.repository }}/k3s-prime-registry/credentials password |  PRIME_REGISTRY_PASSWORD ;
-            secret/data/github/repo/${{ github.repository }}/k3s-prime-stg-registry/credentials registry |  PRIME_STAGING_REGISTRY ;
-            secret/data/github/repo/${{ github.repository }}/k3s-prime-stg-registry/credentials username |  PRIME_STAGING_REGISTRY_USERNAME ;
-            secret/data/github/repo/${{ github.repository }}/k3s-prime-stg-registry/credentials password |  PRIME_STAGING_REGISTRY_PASSWORD ;
-    
-      - name: Login to DockerHub with Rancher Secrets
-        if: github.repository_owner == 'k3s-io'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ env.DOCKER_TOKEN }}
-
       - name: Login to DockerHub with GHA Secrets
         if: github.repository_owner != 'k3s-io'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -51,22 +29,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to Staging Registry
-        uses: docker/login-action@v3
-        if: ${{ contains(github.ref_name, '-rc') && github.repository_owner == 'k3s-io'}}
-        with:
-          registry: ${{ env.PRIME_STAGING_REGISTRY }}
-          username: ${{ env.PRIME_STAGING_REGISTRY_USERNAME }}
-          password: ${{ env.PRIME_STAGING_REGISTRY_PASSWORD }}
-
-      - name: Log in to Prime Registry
-        uses: docker/login-action@v3
-        if: ${{ !contains(github.ref_name, '-rc') && github.repository_owner == 'k3s-io'}}
-        with:
-          registry: ${{ env.PRIME_REGISTRY }}
-          username: ${{ env.PRIME_REGISTRY_USERNAME }}
-          password: ${{ env.PRIME_REGISTRY_PASSWORD }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -82,14 +44,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            docker.io/${{ github.repository_owner == 'k3s-io' && 'rancher' || secrets.DOCKER_USERNAME }}/k3s-upgrade
-            ghcr.io/${{ github.repository }}
-            
-            - image: ${{ env.PRIME_STAGING_REGISTRY }}/rancher/k3s-upgrade
-              enable: ${{ contains(github.ref_name, '-rc') && github.repository_owner == 'k3s-io' }}
-              
-            - image: ${{ env.PRIME_REGISTRY }}/rancher/k3s-upgrade
-              enable: ${{ !contains(github.ref_name, '-rc') && github.repository_owner == 'k3s-io' }}
+            docker.io/rafiusky/k3s-upgrade
+            name=ghcr.io/${{ github.repository }},enable=${{ contains(github.ref_name, '-rc') }}
 
       - name: Build and push multi-platform image
         uses: docker/build-push-action@v6
