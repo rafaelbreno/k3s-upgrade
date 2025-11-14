@@ -81,7 +81,7 @@ jobs:
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           
           public-registry: ghcr.io
-          public-repo: ${{ env.REPO }}
+          public-repo: ${{ github.repository_owner }}
           public-username: ${{ github.repository_owner }}
           public-password: ${{ secrets.GITHUB_TOKEN }}
           push-to-prime: false
@@ -180,14 +180,14 @@ jobs:
           tag: ${{ github.ref_name }}
           make-target: publish-manifest
 
-          public-repo: ${{ env.REPO }}
+          public-repo: ${{ github.repository_owner }}
           public-registry: ghcr.io
-          public-username: ${{ env.DOCKER_USERNAME }}
-          public-password: ${{ env.DOCKER_PASSWORD }}
+          public-username: ${{ github.repository_owner }}
+          public-password: ${{ secrets.GITHUB_TOKEN }}
           push-to-prime: false
 
       - name: Inspect GHCR image
-        run: docker buildx imagetools inspect ghcr.io/${{ env.REPO }}/${{ env.IMAGE }}:${{ env.GIT_TAG }}
+        run: docker buildx imagetools inspect ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE }}:${{ env.GIT_TAG }}
 
       - name: Publish Manifest - Staging
         uses: rancher/ecm-distro-tools/actions/publish-image@master
