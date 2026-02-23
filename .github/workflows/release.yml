@@ -106,45 +106,22 @@ jobs:
           build-args: |
             TAG=${{ github.ref_name }}
 
-      - name: Sign and Attest Images
+      - name: Sign Images
         shell: bash
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
-          LANDLOCK_MODE: DISABLED
         run: |
           for tag_uri in $TAGS; do
             IMAGE_URI="${tag_uri}@${DIGEST}"
             
             IDENTITY=$(echo "$tag_uri" | sed -E 's/:[^:]+$//')
             
-            echo "Signing and attesting ${IMAGE_URI}"
+            echo "Signing ${IMAGE_URI}"
             echo "Using identity: ${IDENTITY}"
 
-            # sign the container image
             cosign sign \
               --yes \
               --sign-container-identity="${IDENTITY}" \
               "${IMAGE_URI}"
-
-            # download and attest provenance
-            max_retries=3
-            retry_delay=5
-            i=0
-            while [ "${i}" -lt "${max_retries}" ]; do
-                if slsactl download provenance --format=slsav1 "${IMAGE_URI}" > provenance-slsav1.json; then
-                    break
-                fi
-                if [ "${i}" -eq "$(( max_retries - 1 ))" ]; then
-                    echo "ERROR: Failed to generate slsav1 provenance for ${IMAGE_URI}."
-                    cat provenance-slsav1.json || true
-                    exit 1
-                fi
-                i=$(( i + 1 ))
-                sleep "${retry_delay}"
-            done
-
-            cat provenance-slsav1.json
-            cosign attest --yes --predicate provenance-slsav1.json --type slsaprovenance1 "${IMAGE_URI}"
-            rm provenance-slsav1.json
           done
