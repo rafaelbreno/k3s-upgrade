@@ -75,6 +75,12 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.5.0
+
+      - name: Install slsactl
+        uses: rancherlabs/slsactl/actions/install-slsactl@v0.1.14
+
       # For k3s-io, push to docker.io/rancher/k3s-upgrade
       # For forks, push to docker.io/<username>/k3s-upgrade
       - name: Docker meta
@@ -88,6 +94,7 @@ jobs:
             name=${{ env.PRIME_REGISTRY }}/rancher/k3s-upgrade,enable=${{ !contains(github.ref_name, '-rc') && github.repository_owner == 'k3s-io' }}
 
       - name: Build and push multi-platform image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -98,3 +105,44 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             TAG=${{ github.ref_name }}
+
+      - name: Sign and Attest Images
+        shell: bash
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+          LANDLOCK_MODE: DISABLED
+        run: |
+          IMAGES=$(echo "$TAGS" | sed -E 's/:[^:]+$//' | sort -u)
+          
+          for img in $IMAGES; do
+            IMAGE_URI="${img}@${DIGEST}"
+            echo "Signing and attesting ${IMAGE_URI}"
+
+            # sign the container image
+            cosign sign \
+              --yes \
+              --sign-container-identity="${img}" \
+              "${IMAGE_URI}"
+
+            # download and attest provenance
+            max_retries=3
+            retry_delay=5
+            i=0
+            while [ "${i}" -lt "${max_retries}" ]; do
+                if slsactl download provenance --format=slsav1 "${IMAGE_URI}" > provenance-slsav1.json; then
+                    break
+                fi
+                if [ "${i}" -eq "$(( max_retries - 1 ))" ]; then
+                    echo "ERROR: Failed to generate slsav1 provenance for ${IMAGE_URI}."
+                    cat provenance-slsav1.json || true
+                    exit 1
+                fi
+                i=$(( i + 1 ))
+                sleep "${retry_delay}"
+            done
+
+            cat provenance-slsav1.json
+            cosign attest --yes --predicate provenance-slsav1.json --type slsaprovenance1 "${IMAGE_URI}"
+            rm provenance-slsav1.json
+          done
