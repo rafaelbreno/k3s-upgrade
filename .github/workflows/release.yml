@@ -113,16 +113,18 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
           LANDLOCK_MODE: DISABLED
         run: |
-          IMAGES=$(echo "$TAGS" | sed -E 's/:[^:]+$//' | sort -u)
-          
-          for img in $IMAGES; do
-            IMAGE_URI="${img}@${DIGEST}"
+          for tag_uri in $TAGS; do
+            IMAGE_URI="${tag_uri}@${DIGEST}"
+            
+            IDENTITY=$(echo "$tag_uri" | sed -E 's/:[^:]+$//')
+            
             echo "Signing and attesting ${IMAGE_URI}"
+            echo "Using identity: ${IDENTITY}"
 
             # sign the container image
             cosign sign \
               --yes \
-              --sign-container-identity="${img}" \
+              --sign-container-identity="${IDENTITY}" \
               "${IMAGE_URI}"
 
             # download and attest provenance
